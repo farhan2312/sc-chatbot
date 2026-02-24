@@ -56,7 +56,7 @@ export default function LoginPage() {
                         </div>
                         <div className="text-center">
                             <h1 className="text-2xl font-bold text-white tracking-tight">
-                                Welcome to NESR AI
+                                Welcome to Supply Chain AI
                             </h1>
                             <p className="text-sm text-white/60 mt-1">
                                 Intelligent Supply Chain Assistant
@@ -109,8 +109,8 @@ export default function LoginPage() {
                             onClick={handlePasswordLogin}
                             disabled={!password.trim() || loading}
                             className={`w-full py-3.5 px-6 rounded-xl text-sm font-semibold transition-all duration-200 ${password.trim() && !loading
-                                    ? 'bg-white/15 hover:bg-white/25 text-white border border-white/20 hover:border-white/40 hover:scale-[1.02] active:scale-[0.98]'
-                                    : 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed'
+                                ? 'bg-white/15 hover:bg-white/25 text-white border border-white/20 hover:border-white/40 hover:scale-[1.02] active:scale-[0.98]'
+                                : 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed'
                                 }`}
                         >
                             {loading ? 'Signing in…' : 'Login with Password'}

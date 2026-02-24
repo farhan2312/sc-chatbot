@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NESR AI",
+  title: "Supply Chain AI",
   description: "Intelligent Supply Chain Assistant",
   icons: {
-    icon: "/nesr-logo.jpg",
+    icon: "/icon.png",
   },
 };
 

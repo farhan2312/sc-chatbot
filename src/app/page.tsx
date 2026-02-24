@@ -177,7 +177,7 @@ export default function Home() {
                 className="object-cover"
               />
             </div>
-            <h1 className="text-lg font-bold text-gray-900 tracking-tight">NESR AI</h1>
+            <h1 className="text-lg font-bold text-gray-900 tracking-tight">Supply Chain AI</h1>
           </div>
 
           {/* New Chat Button */}
@@ -448,7 +448,7 @@ export default function Home() {
             </div>
 
             <p className="text-center text-[10px] text-gray-400 mt-3 font-medium tracking-wide">
-              NESR AI Internal Tool • Verify critical logistics data before shipping
+              Supply Chain AI Internal Tool • Verify critical logistics data before shipping
             </p>
           </div>
         </div>
