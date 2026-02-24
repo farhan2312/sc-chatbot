@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Package, Truck, ArrowUp, Plus, Paperclip } from 'lucide-react';
+import { Package, Truck, ArrowUp, Plus, LogOut } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -15,14 +16,14 @@ const agents = [
     name: 'Material AI',
     icon: Package,
     description: 'Inventory & Materials Expert',
-    webhookUrl: 'https://n8n.nesr.com/webhook/01f4392e-7725-49db-82af-496dc6f2346d'
+    webhookUrl: process.env.NEXT_PUBLIC_MATERIAL_WEBHOOK || '',
   },
   {
     id: 'logistics',
     name: 'Logistics AI',
     icon: Truck,
     description: 'Shipping & Routing Expert',
-    webhookUrl: 'https://n8n.nesr.com/webhook-test/01f4392e-7725-49db-82af-496dc6f2346d'
+    webhookUrl: process.env.NEXT_PUBLIC_LOGISTICS_WEBHOOK || '',
   },
 ];
 
@@ -49,6 +50,15 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  };
 
   const activeAgent = agents.find(a => a.id === activeAgentId) || agents[0];
   const activeAgentName = activeAgent.name;
@@ -133,6 +143,10 @@ export default function Home() {
     const text = inputValue.trim();
     if (text) {
       setInputValue('');
+      // Reset textarea height back to single-line after sending
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
       sendMessage(text);
     }
   };
@@ -217,15 +231,24 @@ export default function Home() {
           })}
         </div>
 
-        {/* User Profile */}
+        {/* User Profile + Sign Out */}
         <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-          <div className="flex items-center gap-3 px-2 py-2 hover:bg-white rounded-lg transition-colors cursor-pointer border border-transparent hover:border-gray-200">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 ring-2 ring-white"></div>
-            <div className="text-sm">
-              <p className="font-medium text-gray-700">User</p>
-              <p className="text-xs text-gray-400">Pro Plan</p>
+          <div className="flex items-center gap-3 px-2 py-2 rounded-lg mb-1">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[#307c4c]/40 to-[#307c4c]/20 ring-2 ring-white flex items-center justify-center text-xs font-bold text-[#307c4c]">
+              A
+            </div>
+            <div className="text-sm flex-1 min-w-0">
+              <p className="font-medium text-gray-700 truncate">Admin</p>
+              <p className="text-xs text-gray-400">NESR Internal</p>
             </div>
           </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-150 group"
+          >
+            <LogOut size={15} className="transition-colors group-hover:text-red-500" />
+            <span className="font-medium">Sign Out</span>
+          </button>
         </div>
       </aside>
 
@@ -392,16 +415,14 @@ export default function Home() {
           <div className="max-w-[700px] mx-auto pointer-events-auto mt-4">
             <div className="relative shadow-[0_8px_40px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.12)] transition-shadow duration-300 rounded-2xl bg-white/90 backdrop-blur-xl ring-1 ring-gray-200 group focus-within:ring-2 focus-within:ring-nesr-green/20">
 
-              {/* Attachment Icon */}
-              <div className="absolute left-3 bottom-3 flex items-center justify-center">
-                <button className="text-gray-400 hover:text-nesr-green transition-colors p-2 rounded-lg hover:bg-gray-100">
-                  <Paperclip size={20} strokeWidth={2} />
-                </button>
-              </div>
 
               <textarea
+                ref={textareaRef}
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  autoResize();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -409,7 +430,7 @@ export default function Home() {
                   }
                 }}
                 placeholder={`Message ${activeAgentName}...`}
-                className="w-full min-h-[60px] max-h-[200px] py-4 pl-14 pr-14 bg-transparent border-none focus:ring-0 focus:outline-none placeholder-gray-400 text-gray-700 font-medium resize-none overflow-y-auto scrollbar-hide"
+                className="w-full min-h-[52px] max-h-40 py-3.5 px-5 pr-14 bg-transparent border-none focus:ring-0 focus:outline-none placeholder-gray-400 text-gray-700 font-medium resize-none overflow-y-auto"
                 rows={1}
               />
 
