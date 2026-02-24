@@ -13,9 +13,12 @@ export default withAuth(
     }
 );
 
-// Protect all routes EXCEPT /login, /api/auth/*, and static public files
+// Only protect actual page routes — exclude ALL api routes, login, and static files.
+// /api/auth  — NextAuth callbacks (must be public)
+// /api/chat  — internal proxy called by the frontend (session cookie handles auth)
+// /api/*     — any future API routes
 export const config = {
     matcher: [
-        '/((?!login|api/auth|_next/static|_next/image|favicon.ico|nesr-logo.jpg).*)',
+        '/((?!login|api|_next/static|_next/image|favicon.ico|icon.png|nesr-logo.jpg).*)',
     ],
 };

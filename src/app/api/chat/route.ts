@@ -7,13 +7,10 @@ import http from 'http';
 const insecureAgent = new https.Agent({ rejectUnauthorized: false });
 
 /**
- * Makes an HTTP/HTTPS request using Node's native modules,
- * bypassing the Next.js fetch wrapper that can't use a custom agent.
+ * Makes an HTTP/HTTPS POST request using Node's native modules,
+ * bypassing the Next.js fetch wrapper which can't use a custom SSL agent.
  */
-function makeRequest(
-    url: string,
-    body: string
-): Promise<string> {
+function makeRequest(url: string, body: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const parsed = new URL(url);
         const isHttps = parsed.protocol === 'https:';
@@ -47,9 +44,24 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { webhookUrl, message, agent } = body;
 
+        // Log received URL so we can verify env vars are loaded correctly
+        console.log('[/api/chat] webhookUrl received:', webhookUrl);
+
         if (!webhookUrl || !message) {
+            console.error('[/api/chat] Missing fields — webhookUrl:', webhookUrl, '| message:', message);
             return NextResponse.json(
                 { error: 'Missing required fields: webhookUrl and message' },
+                { status: 400 }
+            );
+        }
+
+        // Validate the URL is parseable before attempting the request
+        try {
+            new URL(webhookUrl);
+        } catch {
+            console.error('[/api/chat] Invalid webhookUrl (could not parse):', webhookUrl);
+            return NextResponse.json(
+                { error: `Invalid webhook URL: ${webhookUrl}` },
                 { status: 400 }
             );
         }
@@ -66,9 +78,9 @@ export async function POST(request: Request) {
 
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Proxy Error:', error);
+        console.error('[/api/chat] Proxy Error:', error);
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { error: 'Internal Server Error', detail: String(error) },
             { status: 500 }
         );
     }
