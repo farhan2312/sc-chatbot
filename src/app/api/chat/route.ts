@@ -42,7 +42,7 @@ function makeRequest(url: string, body: string): Promise<string> {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { webhookUrl, message, agent } = body;
+        const { webhookUrl, message, agent, sessionId } = body;
 
         // Log received URL so we can verify env vars are loaded correctly
         console.log('[/api/chat] webhookUrl received:', webhookUrl);
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const requestBody = JSON.stringify({ message, agent });
+        const requestBody = JSON.stringify({ message, agent, sessionId });
         const responseText = await makeRequest(webhookUrl, requestBody);
 
         let data;

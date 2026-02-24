@@ -54,6 +54,10 @@ export default function Home() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Unique session ID for this tab — persists until the user refreshes.
+  // Sent with every message so n8n can group them into a conversation thread.
+  const [sessionId] = useState<string>(() => crypto.randomUUID());
+
   // Start with empty messages to show the Welcome View
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -118,6 +122,7 @@ export default function Home() {
           webhookUrl: activeAgent.webhookUrl,
           message: text,
           agent: activeAgent.name,
+          sessionId,
         }),
       });
 
