@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Package, Truck, ArrowUp, Plus, LogOut } from 'lucide-react';
-import { signOut } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -16,6 +17,8 @@ const agents = [
     name: 'Material AI',
     icon: Package,
     description: 'Inventory & Materials Expert',
+    tagline: 'How can I help you manage materials and inventory today?',
+    disclaimer: 'Always verify stock levels before procurement',
     webhookUrl: process.env.NEXT_PUBLIC_MATERIAL_WEBHOOK || '',
   },
   {
@@ -23,6 +26,8 @@ const agents = [
     name: 'Logistics AI',
     icon: Truck,
     description: 'Shipping & Routing Expert',
+    tagline: 'How can I help you optimize your logistics today?',
+    disclaimer: 'Verify critical logistics data before shipping',
     webhookUrl: process.env.NEXT_PUBLIC_LOGISTICS_WEBHOOK || '',
   },
 ];
@@ -42,12 +47,16 @@ const suggestions = [
 ];
 
 export default function Home() {
+  const { status } = useSession();
+  const router = useRouter();
+
   const [activeAgentId, setActiveAgentId] = useState<AgentId>('material');
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Start with empty messages to show the Welcome View
   const [messages, setMessages] = useState<Message[]>([]);
+
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -70,6 +79,16 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
+
+  // Auth guard — redirect to login if session is not valid
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/login');
+    }
+  }, [status, router]);
+
+  // Don't render anything while the session is being checked or if redirecting
+  if (status === 'loading' || status === 'unauthenticated') return null;
 
   const handleAgentChange = (id: AgentId) => {
     setActiveAgentId(id);
@@ -297,7 +316,7 @@ export default function Home() {
               </h2>
               <p className="text-lg text-gray-400 font-medium mb-12 text-center max-w-md leading-relaxed">
                 {activeAgent.description}. <br />
-                <span className="text-base opacity-80">How can I help you optimize logistics today?</span>
+                <span className="text-base opacity-80">{activeAgent.tagline}</span>
               </p>
 
               {/* Suggestion Chips */}
@@ -448,7 +467,7 @@ export default function Home() {
             </div>
 
             <p className="text-center text-[10px] text-gray-400 mt-3 font-medium tracking-wide">
-              Supply Chain AI Internal Tool • Verify critical logistics data before shipping
+              Supply Chain AI Internal Tool • {activeAgent.disclaimer}
             </p>
           </div>
         </div>
