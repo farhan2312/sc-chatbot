@@ -33,32 +33,31 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#1a3a28] via-[#1e4530] to-[#0f2017] relative overflow-hidden">
+        <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-950 via-[#162a1e] to-slate-950 relative overflow-hidden">
 
-            {/* Background decorative blobs */}
-            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#307c4c]/20 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#307c4c]/15 rounded-full blur-3xl pointer-events-none" />
+            {/* Subtle background glow */}
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#307c4c]/10 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Frosted glass card */}
-            <div className="relative z-10 w-full max-w-md mx-4">
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-10 flex flex-col items-center gap-6">
+            {/* Login Card */}
+            <div className="relative z-10 w-full max-w-sm mx-4">
+                <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-8 py-10 flex flex-col items-center gap-7">
 
-                    {/* Logo + Title */}
-                    <div className="flex flex-col items-center gap-4 mb-2">
-                        <div className="relative h-20 w-20 rounded-2xl overflow-hidden shadow-xl ring-2 ring-white/30">
+                    {/* Logo */}
+                    <div className="flex flex-col items-center gap-5">
+                        <div className="relative h-16 w-16 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(48,124,76,0.35)]">
                             <Image
                                 src="/nesr-logo.jpg"
-                                alt="NESR Logo"
+                                alt="Supply Chain AI"
                                 fill
                                 className="object-cover"
                                 priority
                             />
                         </div>
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold text-white tracking-tight">
+                            <h1 className="text-xl font-semibold text-white tracking-tight">
                                 Welcome to Supply Chain AI
                             </h1>
-                            <p className="text-sm text-white/60 mt-1">
+                            <p className="text-sm text-slate-400 mt-1">
                                 Intelligent Supply Chain Assistant
                             </p>
                         </div>
@@ -67,10 +66,9 @@ export default function LoginPage() {
                     {/* SSO Button */}
                     <button
                         onClick={handleSSOLogin}
-                        className="w-full flex items-center justify-center gap-3 bg-[#307c4c] hover:bg-[#28663E] active:bg-[#1f5232] text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-[#307c4c]/40 hover:scale-[1.02] active:scale-[0.98]"
+                        className="w-full flex items-center justify-center gap-3 bg-[#307c4c] hover:bg-[#25603a] active:bg-[#1f5232] text-white font-semibold py-3 px-5 rounded-xl transition-all duration-200 shadow-lg hover:shadow-[#307c4c]/30 hover:scale-[1.02] active:scale-[0.98] text-sm"
                     >
-                        {/* Microsoft Logo */}
-                        <svg width="20" height="20" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg width="18" height="18" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="1" y="1" width="9" height="9" fill="#F25022" />
                             <rect x="11" y="1" width="9" height="9" fill="#7FBA00" />
                             <rect x="1" y="11" width="9" height="9" fill="#00A4EF" />
@@ -81,23 +79,21 @@ export default function LoginPage() {
 
                     {/* Divider */}
                     <div className="w-full flex items-center gap-3">
-                        <div className="flex-1 h-px bg-white/20" />
-                        <span className="text-xs text-white/40 font-medium tracking-widest uppercase">or</span>
-                        <div className="flex-1 h-px bg-white/20" />
+                        <div className="flex-1 h-px bg-slate-700" />
+                        <span className="text-xs text-slate-500 font-medium tracking-widest uppercase">or</span>
+                        <div className="flex-1 h-px bg-slate-700" />
                     </div>
 
                     {/* Password Section */}
                     <div className="w-full flex flex-col gap-3">
-                        <div className="relative">
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                                onKeyDown={(e) => e.key === 'Enter' && handlePasswordLogin()}
-                                placeholder="Enter password"
-                                className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#307c4c]/60 focus:border-[#307c4c]/60 transition-all"
-                            />
-                        </div>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => { setPassword(e.target.value); setError(''); }}
+                            onKeyDown={(e) => e.key === 'Enter' && handlePasswordLogin()}
+                            placeholder="Enter password"
+                            className="w-full bg-slate-950/50 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl py-3 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#307c4c] focus:border-transparent transition-all"
+                        />
 
                         {error && (
                             <p className="text-red-400 text-xs text-center font-medium bg-red-500/10 border border-red-500/20 rounded-lg py-2 px-3">
@@ -108,18 +104,20 @@ export default function LoginPage() {
                         <button
                             onClick={handlePasswordLogin}
                             disabled={!password.trim() || loading}
-                            className={`w-full py-3.5 px-6 rounded-xl text-sm font-semibold transition-all duration-200 ${password.trim() && !loading
-                                ? 'bg-white/15 hover:bg-white/25 text-white border border-white/20 hover:border-white/40 hover:scale-[1.02] active:scale-[0.98]'
-                                : 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed'
+                            className={`w-full py-3 px-5 rounded-xl text-sm font-semibold transition-all duration-200 border ${password.trim() && !loading
+                                    ? 'bg-transparent border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white hover:scale-[1.02] active:scale-[0.98]'
+                                    : 'bg-transparent border-slate-800 text-slate-600 cursor-not-allowed'
                                 }`}
                         >
                             {loading ? 'Signing in…' : 'Login with Password'}
                         </button>
                     </div>
 
-                    <p className="text-white/25 text-[10px] text-center mt-2">
+                    {/* Footer */}
+                    <p className="text-slate-500 text-xs text-center">
                         NESR Internal Tool • Authorized Personnel Only
                     </p>
+
                 </div>
             </div>
         </div>
