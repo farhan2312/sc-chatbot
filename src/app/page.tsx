@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Package, Truck, ArrowUp, Plus, LogOut } from 'lucide-react';
+import { Package, Truck, ArrowUp, Plus, LogOut, Copy, Check } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -45,6 +45,35 @@ const suggestions = [
   'Track Shipment #123',
   'Logistics Report',
 ];
+
+/* ── Copy Button (shown on AI bubbles only) ── */
+function CopyButton({ textToCopy }: { textToCopy: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      console.error('Failed to copy text');
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      aria-label="Copy message"
+      className="absolute top-3 right-3 p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors duration-150"
+    >
+      {copied ? (
+        <Check size={14} className="text-emerald-400" />
+      ) : (
+        <Copy size={14} />
+      )}
+    </button>
+  );
+}
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -370,18 +399,21 @@ export default function Home() {
                     </span>
 
                     <div
-                      className={`relative px-6 py-4 text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md ${msg.role === 'user'
-                        ? 'bg-nesr-green text-white rounded-2xl rounded-br-sm'
-                        : msg.role === 'system'
-                          ? 'bg-red-50 text-red-600 rounded-xl border border-red-100'
-                          : 'bg-gray-100 text-gray-800 rounded-2xl rounded-bl-sm border border-gray-100'
+                      className={`relative p-4 text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md ${msg.role === 'user'
+                          ? 'bg-[#307c4c] text-white rounded-2xl rounded-tr-sm shadow-[#307c4c]/20'
+                          : msg.role === 'system'
+                            ? 'bg-red-50 text-red-600 rounded-xl border border-red-100'
+                            : 'bg-slate-800/80 backdrop-blur border border-slate-700 text-slate-200 rounded-2xl rounded-tl-sm'
                         }`}
                     >
+                      {/* Copy button — AI responses only */}
+                      {msg.role === 'assistant' && (
+                        <CopyButton textToCopy={msg.content} />
+                      )}
+
                       {msg.role === 'user' ? (
-                        // Plain text for user — white text on green bg
                         <span className="whitespace-pre-wrap">{msg.content}</span>
                       ) : (
-                        // Rich markdown for AI / system responses
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
@@ -389,42 +421,42 @@ export default function Home() {
                               <p className="mb-2 last:mb-0 whitespace-pre-wrap">{children}</p>
                             ),
                             table: ({ children }) => (
-                              <table className="w-full text-sm text-left text-gray-700 border-collapse my-4 block overflow-x-auto border border-gray-200 rounded-lg">
+                              <table className="w-full text-sm text-left text-slate-300 border-collapse my-4 block overflow-x-auto border border-slate-600 rounded-lg">
                                 {children}
                               </table>
                             ),
                             thead: ({ children }) => (
-                              <thead className="text-xs uppercase text-gray-700">
+                              <thead className="text-xs uppercase text-slate-300">
                                 {children}
                               </thead>
                             ),
                             th: ({ children }) => (
-                              <th className="px-6 py-2 font-semibold whitespace-nowrap bg-gray-100/50 border-b border-gray-200">{children}</th>
+                              <th className="px-4 py-2 font-semibold whitespace-nowrap bg-slate-700/50 border-b border-slate-600">{children}</th>
                             ),
                             td: ({ children }) => (
-                              <td className="px-6 py-1.5 border-b border-gray-100 last:border-0 whitespace-nowrap">{children}</td>
+                              <td className="px-4 py-1.5 border-b border-slate-700 last:border-0 whitespace-nowrap">{children}</td>
                             ),
                             ul: ({ children }) => (
-                              <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
+                              <ul className="list-disc list-inside mb-2 space-y-1 pl-1">{children}</ul>
                             ),
                             ol: ({ children }) => (
-                              <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
+                              <ol className="list-decimal list-inside mb-2 space-y-1 pl-1">{children}</ol>
                             ),
                             li: ({ children }) => (
-                              <li className="text-gray-700">{children}</li>
+                              <li className="text-slate-300">{children}</li>
                             ),
                             strong: ({ children }) => (
-                              <strong className="font-semibold text-gray-900">{children}</strong>
+                              <strong className="font-semibold text-white">{children}</strong>
                             ),
                             code: ({ children }) => (
-                              <code className="bg-gray-200 text-gray-800 rounded px-1 py-0.5 font-mono text-xs">{children}</code>
+                              <code className="bg-slate-700 text-emerald-300 rounded px-1 py-0.5 font-mono text-xs">{children}</code>
                             ),
                             pre: ({ children }) => (
-                              <pre className="bg-gray-800 text-gray-100 rounded-lg p-4 my-3 overflow-x-auto text-xs font-mono">{children}</pre>
+                              <pre className="bg-slate-900 text-slate-100 rounded-lg p-4 my-3 overflow-x-auto text-xs font-mono border border-slate-700">{children}</pre>
                             ),
-                            h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3">{children}</h1>,
-                            h2: ({ children }) => <h2 className="text-sm font-bold mb-2 mt-3">{children}</h2>,
-                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2">{children}</h3>,
+                            h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3 text-white">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-sm font-bold mb-2 mt-3 text-white">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 text-slate-100">{children}</h3>,
                           }}
                         >
                           {msg.content}
@@ -438,10 +470,10 @@ export default function Home() {
               {/* Loading Indicator */}
               {isLoading && (
                 <div className="flex w-full justify-start mt-2">
-                  <div className="bg-gray-100 text-gray-500 rounded-2xl rounded-bl-sm border border-gray-100 px-6 py-4 flex items-center gap-2 shadow-sm">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+                  <div className="bg-slate-800/80 backdrop-blur border border-slate-700 text-slate-400 rounded-2xl rounded-tl-sm px-6 py-4 flex items-center gap-2 shadow-sm">
+                    <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                    <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                    <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce"></span>
                   </div>
                 </div>
               )}
