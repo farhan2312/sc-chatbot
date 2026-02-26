@@ -47,7 +47,7 @@ const suggestions = [
 ];
 
 export default function Home() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   const [activeAgentId, setActiveAgentId] = useState<AgentId>('material');
@@ -258,12 +258,30 @@ export default function Home() {
         {/* User Profile + Sign Out */}
         <div className="p-4 border-t border-gray-100 bg-gray-50/50">
           <div className="flex items-center gap-3 px-2 py-2 rounded-lg mb-1">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-[#307c4c]/40 to-[#307c4c]/20 ring-2 ring-white flex items-center justify-center text-xs font-bold text-[#307c4c]">
-              A
-            </div>
+            {session?.user?.image ? (
+              <img
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                referrerPolicy="no-referrer"
+                className="h-8 w-8 rounded-full ring-2 ring-white object-cover"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-[#307c4c] ring-2 ring-white flex items-center justify-center text-xs font-bold text-white">
+                {(session?.user?.name || 'U')
+                  .split(' ')
+                  .map((n: string) => n[0])
+                  .join('')
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </div>
+            )}
             <div className="text-sm flex-1 min-w-0">
-              <p className="font-medium text-gray-700 truncate">Admin</p>
-              <p className="text-xs text-gray-400">NESR Internal</p>
+              <p className="font-medium text-gray-700 truncate">
+                {session?.user?.name || 'NESR User'}
+              </p>
+              <p className="text-xs text-slate-400 truncate">
+                {session?.user?.jobTitle || 'NESR Employee'}
+              </p>
             </div>
           </div>
           <button

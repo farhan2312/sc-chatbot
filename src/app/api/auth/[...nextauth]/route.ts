@@ -28,6 +28,26 @@ const handler = NextAuth({
     session: {
         strategy: 'jwt',
     },
+    callbacks: {
+        async jwt({ token, profile }) {
+            if (profile) {
+                // Azure AD sends jobTitle in the OIDC id_token claims
+                const p = profile as Record<string, unknown>;
+                token.jobTitle =
+                    (p.jobTitle as string) ??
+                    (p.job_title as string) ??
+                    (p.title as string) ??
+                    undefined;
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            if (session.user) {
+                session.user.jobTitle = token.jobTitle as string | undefined;
+            }
+            return session;
+        },
+    },
     secret: process.env.NEXTAUTH_SECRET,
 });
 
