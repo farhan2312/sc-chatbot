@@ -44,15 +44,22 @@ const handler = NextAuth({
                         token.jobTitle = "NESR Employee";
                     }
 
-                    // 2. Fetch the Profile Picture
-                    const photoResponse = await fetch("https://graph.microsoft.com/v1.0/me/photo/$value", {
+                    // 2. Fetch the Profile Picture (Requesting a tiny 48x48 thumbnail to save cookie space)
+                    const photoResponse = await fetch("https://graph.microsoft.com/v1.0/me/photos/48x48/$value", {
                         headers: { Authorization: `Bearer ${account.access_token}` },
                     });
                     if (photoResponse.ok) {
-                        // Microsoft returns the photo as a raw binary blob, so we convert it to a Base64 string
                         const pictureBuffer = await photoResponse.arrayBuffer();
                         const pictureBase64 = Buffer.from(pictureBuffer).toString('base64');
-                        token.picture = `data:image/jpeg;base64,${pictureBase64}`;
+
+                        // SAFETY VALVE: Vercel header limits are strict (usually 8KB-14KB total).
+                        // If the base64 string is larger than 4000 characters, we discard it to prevent crashing the app.
+                        // The UI will gracefully fall back to the user's initials.
+                        if (pictureBase64.length < 5000) {
+                            token.picture = `data:image/jpeg;base64,${pictureBase64}`;
+                        } else {
+                            console.warn("Profile picture too large for cookie, falling back to initials.");
+                        }
                     }
                 } catch (error) {
                     console.error("Failed to fetch Graph API data", error);
