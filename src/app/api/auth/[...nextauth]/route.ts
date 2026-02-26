@@ -29,21 +29,45 @@ const handler = NextAuth({
         strategy: 'jwt',
     },
     callbacks: {
-        async jwt({ token, profile }) {
-            if (profile) {
-                // Azure AD sends jobTitle in the OIDC id_token claims
-                const p = profile as Record<string, unknown>;
-                token.jobTitle =
-                    (p.jobTitle as string) ??
-                    (p.job_title as string) ??
-                    (p.title as string) ??
-                    undefined;
+        async jwt({ token, account }: any) {
+            // This block only runs on the initial sign-in when the access token is fresh
+            if (account?.access_token) {
+                try {
+                    // 1. Fetch the Job Title
+                    const profileResponse = await fetch("https://graph.microsoft.com/v1.0/me?$select=jobTitle", {
+                        headers: { Authorization: `Bearer ${account.access_token}` },
+                    });
+                    if (profileResponse.ok) {
+                        const profileData = await profileResponse.json();
+                        token.jobTitle = profileData.jobTitle || "NESR Employee";
+                    } else {
+                        token.jobTitle = "NESR Employee";
+                    }
+
+                    // 2. Fetch the Profile Picture
+                    const photoResponse = await fetch("https://graph.microsoft.com/v1.0/me/photo/$value", {
+                        headers: { Authorization: `Bearer ${account.access_token}` },
+                    });
+                    if (photoResponse.ok) {
+                        // Microsoft returns the photo as a raw binary blob, so we convert it to a Base64 string
+                        const pictureBuffer = await photoResponse.arrayBuffer();
+                        const pictureBase64 = Buffer.from(pictureBuffer).toString('base64');
+                        token.picture = `data:image/jpeg;base64,${pictureBase64}`;
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch Graph API data", error);
+                    if (!token.jobTitle) token.jobTitle = "NESR Employee";
+                }
             }
             return token;
         },
-        async session({ session, token }) {
+        async session({ session, token }: any) {
+            // 3. Pass the fetched data down to the frontend UI session
             if (session.user) {
-                session.user.jobTitle = token.jobTitle as string | undefined;
+                session.user.jobTitle = token.jobTitle as string;
+                if (token.picture) {
+                    session.user.image = token.picture as string;
+                }
             }
             return session;
         },
