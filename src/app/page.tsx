@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { ArrowUp, Plus, LogOut, Copy, Check } from 'lucide-react';
+import { ArrowUp, Plus, LogOut, Copy, Check, Menu } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -51,6 +51,7 @@ export default function Home() {
   const router = useRouter();
 
   const [activeAgentId, setActiveAgentId] = useState<AgentId>('material');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -97,6 +98,7 @@ export default function Home() {
   const handleAgentChange = (id: AgentId) => {
     setActiveAgentId(id);
     setMessages([]); // Clear chat effectively starts new session
+    setIsSidebarOpen(false); // Close sidebar on mobile after selecting agent
   };
 
   const sendMessage = async (messageText: string) => {
@@ -193,13 +195,21 @@ export default function Home() {
 
 
   return (
-    <div className="flex h-screen w-full bg-white overflow-hidden font-sans text-slate-900">
+    <div className="flex h-[100dvh] w-full bg-white overflow-hidden font-sans text-slate-900">
+
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* 
         SIDEBAR 
         Width: 280px (fixed)
       */}
-      <aside className="w-[280px] bg-gray-50 border-r border-gray-100 flex-shrink-0 flex flex-col h-full z-20">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[280px] bg-gray-50 border-r border-gray-100 flex-shrink-0 flex flex-col h-full transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
         {/* Branding Header */}
         <div className="p-6 pb-2">
@@ -314,9 +324,17 @@ export default function Home() {
       <main className="flex-1 flex flex-col h-full relative bg-white">
 
         {/* Header */}
-        <header className="h-16 px-8 flex items-center justify-between border-b border-gray-50 bg-white/80 backdrop-blur-md sticky top-0 z-10 text-gray-800">
+        <header className="h-14 md:h-16 px-4 md:px-8 flex items-center justify-between border-b border-gray-50 bg-white/80 backdrop-blur-md sticky top-0 z-10 text-gray-800 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-sm">{text.chattingWith}</span>
+            {/* Hamburger Button (Mobile Only) */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="md:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+            >
+              <Menu size={20} />
+            </button>
+
+            <span className="text-gray-400 text-sm hidden sm:inline">{text.chattingWith}</span>
             <div className="flex items-center gap-2 bg-nesr-green/5 px-3 py-1 rounded-full border border-nesr-green/10">
               <activeAgent.icon size={14} className="text-nesr-green" />
               <span className="text-nesr-green font-semibold text-sm">
@@ -330,8 +348,8 @@ export default function Home() {
         </header>
 
         {/* Message Container / Welcome View */}
-        {/* Added extra padding bottom (pb-40) to ensure last messages are visible above the floating input */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-8 pb-40 scroll-smooth">
+        {/* Added extra padding bottom to ensure last messages are visible above the floating input */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 pb-32 md:pb-40 scroll-smooth">
 
           {messages.length === 0 ? (
             /* Welcome View (Gemini Style) */
@@ -357,12 +375,12 @@ export default function Home() {
               </p>
 
               {/* Suggestion Chips */}
-              <div className="flex flex-wrap items-center justify-center gap-3 max-w-2xl px-4">
+              <div className="flex flex-nowrap w-full overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:justify-center md:pb-0 gap-3 px-4">
                 {(suggestions as Record<string, readonly string[]>)[activeAgentId]?.map((suggestion, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="px-4 py-2.5 bg-white border border-gray-200 shadow-sm rounded-lg text-sm font-medium text-gray-600 hover:border-nesr-green hover:text-nesr-green transition-all hover:bg-nesr-green/5 hover:shadow-md"
+                    className="shrink-0 whitespace-nowrap px-4 py-2.5 bg-white border border-gray-200 shadow-sm rounded-lg text-sm font-medium text-gray-600 hover:border-nesr-green hover:text-nesr-green transition-all hover:bg-nesr-green/5 hover:shadow-md"
                   >
                     {suggestion}
                   </button>
@@ -460,10 +478,16 @@ export default function Home() {
               {/* Loading Indicator */}
               {isLoading && (
                 <div className="flex w-full justify-start mt-2">
-                  <div className="bg-slate-800/80 backdrop-blur border border-slate-700 text-slate-400 rounded-2xl rounded-tl-sm px-6 py-4 flex items-center gap-2 shadow-sm">
-                    <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce"></span>
+                  <div
+                    className="rounded-2xl rounded-tl-sm px-6 py-4 flex items-center gap-2 shadow-sm"
+                    style={{
+                      backgroundColor: colors.assistantBubbleBg,
+                      border: `1px solid ${colors.assistantBubbleBorder}`,
+                    }}
+                  >
+                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                    <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></span>
                   </div>
                 </div>
               )}

@@ -37,7 +37,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-950 via-[#162a1e] to-slate-950 relative overflow-hidden">
+        <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gradient-to-br from-slate-950 via-[#162a1e] to-slate-950 relative overflow-hidden">
 
             {/* Subtle background glow */}
             <div
@@ -46,8 +46,8 @@ export default function LoginPage() {
             />
 
             {/* Login Card */}
-            <div className="relative z-10 w-full max-w-sm mx-4">
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-8 py-10 flex flex-col items-center gap-7">
+            <div className="relative z-10 w-full px-4 sm:max-w-md sm:px-0">
+                <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:px-8 md:py-10 flex flex-col items-center gap-7">
 
                     {/* Logo */}
                     <div className="flex flex-col items-center gap-5">
@@ -64,7 +64,7 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="text-center">
-                            <h1 className="text-xl font-semibold text-white tracking-tight">
+                            <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
                                 {login.title}
                             </h1>
                             <p className="text-sm text-slate-400 mt-1">
@@ -76,7 +76,7 @@ export default function LoginPage() {
                     {/* SSO Button */}
                     <button
                         onClick={handleSSOLogin}
-                        className="w-full flex items-center justify-center gap-3 text-white font-semibold py-3 px-5 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-sm"
+                        className="w-full min-h-[48px] flex items-center justify-center gap-3 text-white font-semibold py-3 px-5 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
                         style={{
                             backgroundColor: colors.brandPrimary,
                             boxShadow: `0 10px 15px -3px ${colors.brandPrimary}4D`,
