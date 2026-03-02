@@ -2,49 +2,20 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Package, Truck, ArrowUp, Plus, LogOut, Copy, Check } from 'lucide-react';
+import { ArrowUp, Plus, LogOut, Copy, Check } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { siteConfig, type AgentId } from '@/config/site';
 
-/* 
-  Defines the available agents with their respective configurations.
-*/
-const agents = [
-  {
-    id: 'material',
-    name: 'Material AI',
-    icon: Package,
-    description: 'Inventory & Materials Expert',
-    tagline: 'How can I help you manage materials and inventory today?',
-    disclaimer: 'Always verify stock levels before procurement',
-    webhookUrl: process.env.NEXT_PUBLIC_MATERIAL_WEBHOOK || '',
-  },
-  {
-    id: 'logistics',
-    name: 'Logistics AI',
-    icon: Truck,
-    description: 'Shipping & Routing Expert',
-    tagline: 'How can I help you optimize your logistics today?',
-    disclaimer: 'Verify critical logistics data before shipping',
-    webhookUrl: process.env.NEXT_PUBLIC_LOGISTICS_WEBHOOK || '',
-  },
-];
-
-type AgentId = 'material' | 'logistics';
+const { agents, suggestions, colors, images, text } = siteConfig;
 
 interface Message {
   id: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
 }
-
-const suggestions = [
-  'Check Material Availability',
-  'Track Shipment #123',
-  'Logistics Report',
-];
 
 /* ── Copy Button (shown on AI bubbles only) ── */
 function CopyButton({ textToCopy }: { textToCopy: string }) {
@@ -64,10 +35,10 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
     <button
       onClick={handleCopy}
       aria-label="Copy message"
-      className="absolute top-3 right-3 p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors duration-150"
+      className="absolute top-3 right-3 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors duration-150"
     >
       {copied ? (
-        <Check size={14} className="text-emerald-400" />
+        <Check size={14} className="text-emerald-500" />
       ) : (
         <Copy size={14} />
       )}
@@ -128,14 +99,14 @@ export default function Home() {
     setMessages([]); // Clear chat effectively starts new session
   };
 
-  const sendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
 
     // Add User Message
     const newUserMessage: Message = {
       id: Date.now(),
       role: 'user',
-      content: text,
+      content: messageText,
     };
 
     setMessages(prev => [...prev, newUserMessage]);
@@ -149,7 +120,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           webhookUrl: activeAgent.webhookUrl,
-          message: text,
+          message: messageText,
           agent: activeAgent.name,
           sessionId,
         }),
@@ -184,7 +155,7 @@ export default function Home() {
       const errorMessage: Message = {
         id: Date.now() + 2,
         role: 'system',
-        content: "Detailed error: Unable to connect to the agent. Please try again later.",
+        content: text.errorMessage,
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -193,19 +164,30 @@ export default function Home() {
   };
 
   const handleSendMessage = () => {
-    const text = inputValue.trim();
-    if (text) {
+    const msg = inputValue.trim();
+    if (msg) {
       setInputValue('');
       // Reset textarea height back to single-line after sending
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
-      sendMessage(text);
+      sendMessage(msg);
     }
   };
 
-  const handleSuggestionClick = (text: string) => {
-    sendMessage(text);
+  const handleSuggestionClick = (suggestionText: string) => {
+    setInputValue(suggestionText);
+
+    // Focus the textarea
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+
+      // We need a slight delay for autoResize to calculate the correct scrollHeight 
+      // based on the newly inserted text
+      setTimeout(() => {
+        autoResize();
+      }, 0);
+    }
   };
 
 
@@ -224,13 +206,13 @@ export default function Home() {
           <div className="flex items-center gap-3 mb-8">
             <div className="relative h-8 w-8 rounded-full overflow-hidden shadow-sm ring-1 ring-gray-200">
               <Image
-                src="/nesr-logo.jpg"
-                alt="NESR Logo"
+                src={images.logo}
+                alt={text.appName}
                 fill
                 className="object-cover"
               />
             </div>
-            <h1 className="text-lg font-bold text-gray-900 tracking-tight">Supply Chain AI</h1>
+            <h1 className="text-lg font-bold text-gray-900 tracking-tight">{text.sidebarTitle}</h1>
           </div>
 
           {/* New Chat Button */}
@@ -239,14 +221,14 @@ export default function Home() {
             className="w-full flex items-center justify-start gap-3 bg-white border border-gray-200 hover:bg-gray-50 active:bg-gray-100 text-gray-700 transition-all py-2.5 px-4 rounded-xl shadow-sm hover:shadow text-sm font-medium group"
           >
             <Plus size={18} className="text-gray-400 group-hover:text-nesr-green transition-colors" />
-            <span>New Chat</span>
+            <span>{text.newChatButton}</span>
           </button>
         </div>
 
         {/* Agent List */}
         <div className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
           <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">
-            Agents
+            {text.agentsLabel}
           </div>
 
           {agents.map((agent) => {
@@ -290,12 +272,15 @@ export default function Home() {
             {session?.user?.image ? (
               <img
                 src={session.user.image}
-                alt={session.user.name || 'User'}
+                alt={session.user.name || text.defaultUserName}
                 referrerPolicy="no-referrer"
                 className="h-8 w-8 rounded-full ring-2 ring-white object-cover"
               />
             ) : (
-              <div className="h-8 w-8 rounded-full bg-[#307c4c] ring-2 ring-white flex items-center justify-center text-xs font-bold text-white">
+              <div
+                className="h-8 w-8 rounded-full ring-2 ring-white flex items-center justify-center text-xs font-bold text-white"
+                style={{ backgroundColor: colors.fallbackAvatarBg }}
+              >
                 {(session?.user?.name || 'U')
                   .split(' ')
                   .map((n: string) => n[0])
@@ -306,10 +291,10 @@ export default function Home() {
             )}
             <div className="text-sm flex-1 min-w-0">
               <p className="font-medium text-gray-700 truncate">
-                {session?.user?.name || 'NESR User'}
+                {session?.user?.name || text.defaultUserName}
               </p>
               <p className="text-xs text-slate-400 truncate">
-                {session?.user?.jobTitle || 'NESR Employee'}
+                {session?.user?.jobTitle || text.defaultJobTitle}
               </p>
             </div>
           </div>
@@ -318,7 +303,7 @@ export default function Home() {
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-150 group"
           >
             <LogOut size={15} className="transition-colors group-hover:text-red-500" />
-            <span className="font-medium">Sign Out</span>
+            <span className="font-medium">{text.signOutButton}</span>
           </button>
         </div>
       </aside>
@@ -331,7 +316,7 @@ export default function Home() {
         {/* Header */}
         <header className="h-16 px-8 flex items-center justify-between border-b border-gray-50 bg-white/80 backdrop-blur-md sticky top-0 z-10 text-gray-800">
           <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-sm">Chatting with</span>
+            <span className="text-gray-400 text-sm">{text.chattingWith}</span>
             <div className="flex items-center gap-2 bg-nesr-green/5 px-3 py-1 rounded-full border border-nesr-green/10">
               <activeAgent.icon size={14} className="text-nesr-green" />
               <span className="text-nesr-green font-semibold text-sm">
@@ -354,8 +339,8 @@ export default function Home() {
               <div className="relative h-24 w-24 rounded-full overflow-hidden shadow-xl mb-8 ring-4 ring-gray-50 bg-white p-1">
                 <div className="relative h-full w-full rounded-full overflow-hidden">
                   <Image
-                    src="/nesr-logo.jpg"
-                    alt="NESR Logo"
+                    src={images.logo}
+                    alt={text.appName}
                     fill
                     className="object-cover"
                     priority
@@ -364,7 +349,7 @@ export default function Home() {
               </div>
 
               <h2 className="text-3xl font-semibold text-gray-900 mb-2 tracking-tight">
-                Hello, I am {activeAgentName}.
+                {text.welcomeGreeting(activeAgentName)}
               </h2>
               <p className="text-lg text-gray-400 font-medium mb-12 text-center max-w-md leading-relaxed">
                 {activeAgent.description}. <br />
@@ -373,7 +358,7 @@ export default function Home() {
 
               {/* Suggestion Chips */}
               <div className="flex flex-wrap items-center justify-center gap-3 max-w-2xl px-4">
-                {suggestions.map((suggestion, idx) => (
+                {(suggestions as Record<string, readonly string[]>)[activeAgentId]?.map((suggestion, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSuggestionClick(suggestion)}
@@ -395,16 +380,21 @@ export default function Home() {
                   <div className="flex flex-col gap-1 max-w-[85%]">
                     {/* Name label for clarity */}
                     <span className={`text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-1 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                      {msg.role === 'user' ? 'You' : activeAgentName}
+                      {msg.role === 'user' ? text.youLabel : activeAgentName}
                     </span>
 
                     <div
                       className={`relative p-4 text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md ${msg.role === 'user'
-                          ? 'bg-[#307c4c] text-white rounded-2xl rounded-tr-sm shadow-[#307c4c]/20'
-                          : msg.role === 'system'
-                            ? 'bg-red-50 text-red-600 rounded-xl border border-red-100'
-                            : 'bg-slate-800/80 backdrop-blur border border-slate-700 text-slate-200 rounded-2xl rounded-tl-sm'
+                        ? 'bg-nesr-green text-white rounded-2xl rounded-tr-sm shadow-nesr-green/20'
+                        : msg.role === 'system'
+                          ? 'bg-red-50 text-red-600 rounded-xl border border-red-100'
+                          : 'rounded-2xl rounded-tl-sm'
                         }`}
+                      style={msg.role === 'assistant' ? {
+                        backgroundColor: colors.assistantBubbleBg,
+                        border: `1px solid ${colors.assistantBubbleBorder}`,
+                        color: colors.assistantTextColor
+                      } : {}}
                     >
                       {/* Copy button — AI responses only */}
                       {msg.role === 'assistant' && (
@@ -421,20 +411,20 @@ export default function Home() {
                               <p className="mb-2 last:mb-0 whitespace-pre-wrap">{children}</p>
                             ),
                             table: ({ children }) => (
-                              <table className="w-full text-sm text-left text-slate-300 border-collapse my-4 block overflow-x-auto border border-slate-600 rounded-lg">
+                              <table className="w-full text-sm text-left border-collapse my-4 block overflow-x-auto border border-slate-300 rounded-lg">
                                 {children}
                               </table>
                             ),
                             thead: ({ children }) => (
-                              <thead className="text-xs uppercase text-slate-300">
+                              <thead className="text-xs uppercase text-slate-500 bg-slate-100">
                                 {children}
                               </thead>
                             ),
                             th: ({ children }) => (
-                              <th className="px-4 py-2 font-semibold whitespace-nowrap bg-slate-700/50 border-b border-slate-600">{children}</th>
+                              <th className="px-4 py-2 font-semibold whitespace-nowrap border-b border-slate-300">{children}</th>
                             ),
                             td: ({ children }) => (
-                              <td className="px-4 py-1.5 border-b border-slate-700 last:border-0 whitespace-nowrap">{children}</td>
+                              <td className="px-4 py-1.5 border-b border-slate-200 last:border-0 whitespace-nowrap">{children}</td>
                             ),
                             ul: ({ children }) => (
                               <ul className="list-disc list-inside mb-2 space-y-1 pl-1">{children}</ul>
@@ -443,20 +433,20 @@ export default function Home() {
                               <ol className="list-decimal list-inside mb-2 space-y-1 pl-1">{children}</ol>
                             ),
                             li: ({ children }) => (
-                              <li className="text-slate-300">{children}</li>
+                              <li>{children}</li>
                             ),
                             strong: ({ children }) => (
-                              <strong className="font-semibold text-white">{children}</strong>
+                              <strong className="font-semibold">{children}</strong>
                             ),
                             code: ({ children }) => (
-                              <code className="bg-slate-700 text-emerald-300 rounded px-1 py-0.5 font-mono text-xs">{children}</code>
+                              <code className="bg-slate-200 text-slate-800 rounded px-1 py-0.5 font-mono text-xs">{children}</code>
                             ),
                             pre: ({ children }) => (
-                              <pre className="bg-slate-900 text-slate-100 rounded-lg p-4 my-3 overflow-x-auto text-xs font-mono border border-slate-700">{children}</pre>
+                              <pre className="bg-slate-800 text-slate-100 rounded-lg p-4 my-3 overflow-x-auto text-xs font-mono border border-slate-700">{children}</pre>
                             ),
-                            h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3 text-white">{children}</h1>,
-                            h2: ({ children }) => <h2 className="text-sm font-bold mb-2 mt-3 text-white">{children}</h2>,
-                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 text-slate-100">{children}</h3>,
+                            h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3 text-black">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-sm font-bold mb-2 mt-3 text-black">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 text-slate-800">{children}</h3>,
                           }}
                         >
                           {msg.content}
@@ -503,7 +493,7 @@ export default function Home() {
                     handleSendMessage();
                   }
                 }}
-                placeholder={`Message ${activeAgentName}...`}
+                placeholder={text.inputPlaceholder(activeAgentName)}
                 className="w-full min-h-[52px] max-h-40 py-3.5 px-5 pr-14 bg-transparent border-none focus:ring-0 focus:outline-none placeholder-gray-400 text-gray-700 font-medium resize-none overflow-y-auto"
                 rows={1}
               />
@@ -513,7 +503,7 @@ export default function Home() {
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim() || isLoading}
                 className={`absolute right-3 bottom-3 h-9 w-9 rounded-lg flex items-center justify-center text-white transition-all duration-200 ${inputValue.trim() && !isLoading
-                  ? 'bg-nesr-green hover:bg-[#28663E] shadow-sm hover:scale-105 active:scale-95'
+                  ? 'bg-nesr-green hover:bg-nesr-green/80 shadow-sm hover:scale-105 active:scale-95'
                   : 'bg-gray-100 text-gray-300 cursor-not-allowed'
                   }`}
               >
@@ -522,7 +512,7 @@ export default function Home() {
             </div>
 
             <p className="text-center text-[10px] text-gray-400 mt-3 font-medium tracking-wide">
-              Supply Chain AI Internal Tool • {activeAgent.disclaimer}
+              {text.disclaimer(activeAgent.disclaimer)}
             </p>
           </div>
         </div>

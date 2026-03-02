@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from './providers';
+import { siteConfig } from '@/config/site';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Supply Chain AI",
-  description: "Intelligent Supply Chain Assistant",
+  title: siteConfig.text.appName,
+  description: siteConfig.text.appDescription,
   icons: {
-    icon: "/icon.png",
+    icon: siteConfig.images.favicon,
   },
 };
 

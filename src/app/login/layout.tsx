@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import { siteConfig } from '@/config/site';
 
 export const metadata: Metadata = {
-    title: 'Sign In — Supply Chain AI',
+    title: siteConfig.text.login.pageTitle,
     icons: {
-        icon: '/icon.png',
+        icon: siteConfig.images.favicon,
     },
 };
 
