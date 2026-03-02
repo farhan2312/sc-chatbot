@@ -353,8 +353,8 @@ export default function Home() {
 
           {messages.length === 0 ? (
             /* Welcome View (Gemini Style) */
-            <div className="h-full flex flex-col items-center justify-center -mt-10 animate-in fade-in duration-500">
-              <div className="relative h-24 w-24 rounded-full overflow-hidden shadow-xl mb-8 ring-4 ring-gray-50 bg-white p-1">
+            <div className="h-full w-full max-w-full flex flex-col items-center justify-center -mt-10 px-4 overflow-hidden animate-in fade-in duration-500">
+              <div className="relative h-24 w-24 rounded-full overflow-hidden shadow-xl mb-8 ring-4 ring-gray-50 bg-white p-1 shrink-0">
                 <div className="relative h-full w-full rounded-full overflow-hidden">
                   <Image
                     src={images.logo}
@@ -366,16 +366,16 @@ export default function Home() {
                 </div>
               </div>
 
-              <h2 className="text-3xl font-semibold text-gray-900 mb-2 tracking-tight">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-2 tracking-tight text-center w-full">
                 {text.welcomeGreeting(activeAgentName)}
               </h2>
-              <p className="text-lg text-gray-400 font-medium mb-12 text-center max-w-md leading-relaxed">
-                {activeAgent.description}. <br />
-                <span className="text-base opacity-80">{activeAgent.tagline}</span>
+              <p className="text-base md:text-lg text-gray-400 font-medium mb-10 text-center w-full max-w-md leading-relaxed px-2">
+                {activeAgent.description}. <br className="hidden sm:block" />
+                <span className="text-sm md:text-base opacity-80">{activeAgent.tagline}</span>
               </p>
 
               {/* Suggestion Chips */}
-              <div className="flex flex-nowrap w-full overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:justify-center md:pb-0 gap-3 px-4">
+              <div className="flex flex-nowrap w-full max-w-full overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:justify-center md:pb-0 gap-3 px-2 sm:px-4 snap-x">
                 {(suggestions as Record<string, readonly string[]>)[activeAgentId]?.map((suggestion, idx) => (
                   <button
                     key={idx}
