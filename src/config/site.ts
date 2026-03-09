@@ -1,4 +1,4 @@
-import { Package, Truck, type LucideIcon } from 'lucide-react';
+import { Package, Truck, Search, type LucideIcon } from 'lucide-react';
 
 /* ─────────────────────────────────────────────
    SINGLE SOURCE OF TRUTH
@@ -96,6 +96,11 @@ export const siteConfig = {
             'Who is the MM Focal point for: ',
             'Provide a logistics summary for: ',
         ],
+        sourceguide: [
+            'Which Supplier to use for Laptops in KSA?',
+            'Who supplies Hardware in HQ Dubai?',
+            'Check vendor details for Barite in UAE',
+        ],
     },
 
     /* ── Agents ── */
@@ -117,6 +122,15 @@ export const siteConfig = {
             tagline: 'How can I help you optimize your logistics today?',
             disclaimer: 'Verify critical logistics data before shipping',
             webhookUrl: process.env.NEXT_PUBLIC_LOGISTICS_WEBHOOK || '',
+        },
+        {
+            id: 'sourceguide',
+            name: 'SourceGuide AI',
+            icon: Search,
+            description: 'Procurement & Vendor Expert',
+            tagline: 'I can help you find approved suppliers and check vendor details.',
+            disclaimer: 'Always confirm vendor status with procurement',
+            webhookUrl: process.env.NEXT_PUBLIC_SOURCEGUIDE_WEBHOOK || '',
         },
     ] satisfies AgentConfig[],
 } as const;
