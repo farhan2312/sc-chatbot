@@ -128,8 +128,15 @@ export default function Home() {
         }),
       });
 
+      // If the backend returned a non-ok status, show the generic error
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        console.error(`Backend error: ${response.status}`);
+        setMessages(prev => [...prev, {
+          id: Date.now() + 1,
+          role: 'assistant',
+          content: text.genericError,
+        }]);
+        return;
       }
 
       const data = await response.json();
@@ -144,6 +151,19 @@ export default function Home() {
         aiContent = String(data);
       }
 
+      // ── Sanity Check: intercept leaked JSON or garbage responses ──
+      const trimmed = aiContent.trim();
+      if (
+        trimmed.startsWith('{') ||
+        trimmed.startsWith('[') ||
+        trimmed.includes('{"output":') ||
+        trimmed.includes('"error"') ||
+        !trimmed
+      ) {
+        console.warn('Intercepted malformed AI response:', trimmed.slice(0, 200));
+        aiContent = text.genericError;
+      }
+
       const newAiMessage: Message = {
         id: Date.now() + 1,
         role: 'assistant',
@@ -153,13 +173,13 @@ export default function Home() {
       setMessages(prev => [...prev, newAiMessage]);
 
     } catch (error) {
+      // Network failure, timeout, or unexpected crash — show as a normal assistant bubble
       console.error("Failed to send message:", error);
-      const errorMessage: Message = {
+      setMessages(prev => [...prev, {
         id: Date.now() + 2,
-        role: 'system',
-        content: text.errorMessage,
-      };
-      setMessages(prev => [...prev, errorMessage]);
+        role: 'assistant',
+        content: text.genericError,
+      }]);
     } finally {
       setIsLoading(false);
     }

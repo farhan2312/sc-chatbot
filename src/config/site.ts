@@ -66,6 +66,8 @@ export const siteConfig = {
         welcomeGreeting: (agentName: string) => `Hello, I am ${agentName}.`,
         errorMessage:
             'Detailed error: Unable to connect to the agent. Please try again later.',
+        genericError:
+            'Chatbot is not available right now. Please try again later.',
 
         // Login page
         login: {
