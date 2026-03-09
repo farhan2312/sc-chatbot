@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { ArrowUp, Plus, LogOut, Copy, Check, Menu } from 'lucide-react';
+import { ArrowUp, Plus, LogOut, Copy, Check, Menu, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -17,13 +17,14 @@ interface Message {
   content: string;
 }
 
-/* ── Copy Button (shown on AI bubbles only) ── */
-function CopyButton({ textToCopy }: { textToCopy: string }) {
+/* ── Assistant Bubble (own component so each message has independent state) ── */
+function AssistantBubble({ content }: { content: string }) {
   const [copied, setCopied] = useState(false);
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(textToCopy);
+      await navigator.clipboard.writeText(content);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -31,18 +32,110 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
     }
   };
 
+  const toggleFeedback = (type: 'up' | 'down') => {
+    setFeedback(prev => (prev === type ? null : type));
+  };
+
   return (
-    <button
-      onClick={handleCopy}
-      aria-label="Copy message"
-      className="absolute top-3 right-3 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors duration-150"
+    <div
+      className="relative p-4 text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md rounded-2xl rounded-tl-sm"
+      style={{
+        backgroundColor: colors.assistantBubbleBg,
+        border: `1px solid ${colors.assistantBubbleBorder}`,
+        color: colors.assistantTextColor,
+      }}
     >
-      {copied ? (
-        <Check size={14} className="text-emerald-500" />
-      ) : (
-        <Copy size={14} />
-      )}
-    </button>
+      {/* Message Content */}
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          p: ({ children }) => (
+            <p className="mb-2 last:mb-0 whitespace-pre-wrap">{children}</p>
+          ),
+          table: ({ children }) => (
+            <div className="w-full overflow-x-auto my-4">
+              <table className="w-full text-sm text-left border-collapse border border-slate-300 rounded-lg">
+                {children}
+              </table>
+            </div>
+          ),
+          thead: ({ children }) => (
+            <thead className="text-xs uppercase text-slate-500 bg-slate-100">
+              {children}
+            </thead>
+          ),
+          th: ({ children }) => (
+            <th className="px-4 py-2 font-semibold whitespace-nowrap border-b border-slate-300">{children}</th>
+          ),
+          td: ({ children }) => (
+            <td className="px-4 py-1.5 border-b border-slate-200 last:border-0 whitespace-nowrap">{children}</td>
+          ),
+          ul: ({ children }) => (
+            <ul className="list-disc list-inside mb-2 space-y-1 pl-1">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="list-decimal list-inside mb-2 space-y-1 pl-1">{children}</ol>
+          ),
+          li: ({ children }) => (
+            <li>{children}</li>
+          ),
+          strong: ({ children }) => (
+            <strong className="font-semibold">{children}</strong>
+          ),
+          code: ({ children }) => (
+            <code className="bg-slate-200 text-slate-800 rounded px-1 py-0.5 font-mono text-xs">{children}</code>
+          ),
+          pre: ({ children }) => (
+            <pre className="bg-slate-800 text-slate-100 rounded-lg p-4 my-3 overflow-x-auto text-xs font-mono border border-slate-700">{children}</pre>
+          ),
+          h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3 text-black">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-sm font-bold mb-2 mt-3 text-black">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 text-slate-800">{children}</h3>,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+
+      {/* ── Action Bar ── */}
+      <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t border-slate-200">
+        {/* Copy */}
+        <button
+          onClick={handleCopy}
+          aria-label="Copy message"
+          className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition-colors duration-150"
+        >
+          {copied ? (
+            <Check size={16} className="text-emerald-500" />
+          ) : (
+            <Copy size={16} />
+          )}
+        </button>
+
+        {/* Thumbs Up */}
+        <button
+          onClick={() => toggleFeedback('up')}
+          aria-label="Thumbs up"
+          className={`p-1.5 rounded-md transition-colors duration-150 ${feedback === 'up'
+              ? 'text-emerald-500 bg-emerald-50'
+              : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50'
+            }`}
+        >
+          <ThumbsUp size={16} fill={feedback === 'up' ? 'currentColor' : 'none'} />
+        </button>
+
+        {/* Thumbs Down */}
+        <button
+          onClick={() => toggleFeedback('down')}
+          aria-label="Thumbs down"
+          className={`p-1.5 rounded-md transition-colors duration-150 ${feedback === 'down'
+              ? 'text-red-400 bg-red-50'
+              : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200/50'
+            }`}
+        >
+          <ThumbsDown size={16} fill={feedback === 'down' ? 'currentColor' : 'none'} />
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -421,78 +514,23 @@ export default function Home() {
                       {msg.role === 'user' ? text.youLabel : activeAgentName}
                     </span>
 
-                    <div
-                      className={`relative p-4 text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md ${msg.role === 'user'
-                        ? 'bg-nesr-green text-white rounded-2xl rounded-tr-sm shadow-nesr-green/20'
-                        : msg.role === 'system'
-                          ? 'bg-red-50 text-red-600 rounded-xl border border-red-100'
-                          : 'rounded-2xl rounded-tl-sm'
-                        }`}
-                      style={msg.role === 'assistant' ? {
-                        backgroundColor: colors.assistantBubbleBg,
-                        border: `1px solid ${colors.assistantBubbleBorder}`,
-                        color: colors.assistantTextColor
-                      } : {}}
-                    >
-                      {/* Copy button — AI responses only */}
-                      {msg.role === 'assistant' && (
-                        <CopyButton textToCopy={msg.content} />
-                      )}
-
-                      {msg.role === 'user' ? (
+                    {msg.role === 'user' ? (
+                      <div
+                        className="relative p-4 text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md bg-nesr-green text-white rounded-2xl rounded-tr-sm shadow-nesr-green/20"
+                      >
                         <span className="whitespace-pre-wrap">{msg.content}</span>
-                      ) : (
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            p: ({ children }) => (
-                              <p className="mb-2 last:mb-0 whitespace-pre-wrap">{children}</p>
-                            ),
-                            table: ({ children }) => (
-                              <div className="w-full overflow-x-auto my-4">
-                                <table className="w-full text-sm text-left border-collapse border border-slate-300 rounded-lg">
-                                  {children}
-                                </table>
-                              </div>
-                            ),
-                            thead: ({ children }) => (
-                              <thead className="text-xs uppercase text-slate-500 bg-slate-100">
-                                {children}
-                              </thead>
-                            ),
-                            th: ({ children }) => (
-                              <th className="px-4 py-2 font-semibold whitespace-nowrap border-b border-slate-300">{children}</th>
-                            ),
-                            td: ({ children }) => (
-                              <td className="px-4 py-1.5 border-b border-slate-200 last:border-0 whitespace-nowrap">{children}</td>
-                            ),
-                            ul: ({ children }) => (
-                              <ul className="list-disc list-inside mb-2 space-y-1 pl-1">{children}</ul>
-                            ),
-                            ol: ({ children }) => (
-                              <ol className="list-decimal list-inside mb-2 space-y-1 pl-1">{children}</ol>
-                            ),
-                            li: ({ children }) => (
-                              <li>{children}</li>
-                            ),
-                            strong: ({ children }) => (
-                              <strong className="font-semibold">{children}</strong>
-                            ),
-                            code: ({ children }) => (
-                              <code className="bg-slate-200 text-slate-800 rounded px-1 py-0.5 font-mono text-xs">{children}</code>
-                            ),
-                            pre: ({ children }) => (
-                              <pre className="bg-slate-800 text-slate-100 rounded-lg p-4 my-3 overflow-x-auto text-xs font-mono border border-slate-700">{children}</pre>
-                            ),
-                            h1: ({ children }) => <h1 className="text-base font-bold mb-2 mt-3 text-black">{children}</h1>,
-                            h2: ({ children }) => <h2 className="text-sm font-bold mb-2 mt-3 text-black">{children}</h2>,
-                            h3: ({ children }) => <h3 className="text-sm font-semibold mb-1 mt-2 text-slate-800">{children}</h3>,
-                          }}
-                        >
+                      </div>
+                    ) : msg.role === 'system' ? (
+                      <div
+                        className="relative p-4 text-sm leading-relaxed shadow-sm transition-all duration-200 hover:shadow-md bg-red-50 text-red-600 rounded-xl border border-red-100"
+                      >
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {msg.content}
                         </ReactMarkdown>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <AssistantBubble content={msg.content} />
+                    )}
                   </div>
                 </div>
               ))}
