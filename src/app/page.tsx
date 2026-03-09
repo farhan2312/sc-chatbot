@@ -353,7 +353,7 @@ export default function Home() {
 
           {messages.length === 0 ? (
             /* Welcome View (Gemini Style) */
-            <div className="h-full w-full max-w-full flex flex-col items-center justify-center -mt-10 px-4 overflow-hidden animate-in fade-in duration-500">
+            <div className="h-full w-full max-w-[100vw] overflow-x-hidden flex flex-col items-center justify-center -mt-10 px-4 animate-in fade-in duration-500">
               <div className="relative h-24 w-24 rounded-full overflow-hidden shadow-xl mb-8 ring-4 ring-gray-50 bg-white p-1 shrink-0">
                 <div className="relative h-full w-full rounded-full overflow-hidden">
                   <Image
@@ -366,21 +366,21 @@ export default function Home() {
                 </div>
               </div>
 
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-2 tracking-tight text-center w-full">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-2 tracking-tight text-center w-full max-w-full break-words whitespace-normal">
                 {text.welcomeGreeting(activeAgentName)}
               </h2>
-              <p className="text-base md:text-lg text-gray-400 font-medium mb-10 text-center w-full max-w-md leading-relaxed px-2">
+              <p className="text-base md:text-lg text-gray-400 font-medium mb-10 text-center w-full max-w-full break-words whitespace-normal leading-relaxed px-2">
                 {activeAgent.description}. <br className="hidden sm:block" />
                 <span className="text-sm md:text-base opacity-80">{activeAgent.tagline}</span>
               </p>
 
               {/* Suggestion Chips */}
-              <div className="flex flex-nowrap w-full max-w-full overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:justify-center md:pb-0 gap-3 px-2 sm:px-4 snap-x">
+              <div className="flex flex-col md:flex-row md:flex-wrap items-center justify-center gap-3 w-full">
                 {(suggestions as Record<string, readonly string[]>)[activeAgentId]?.map((suggestion, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="shrink-0 whitespace-nowrap px-4 py-2.5 bg-white border border-gray-200 shadow-sm rounded-lg text-sm font-medium text-gray-600 hover:border-nesr-green hover:text-nesr-green transition-all hover:bg-nesr-green/5 hover:shadow-md"
+                    className="w-full md:w-auto max-w-full text-left whitespace-normal break-words px-4 py-2.5 bg-white border border-gray-200 shadow-sm rounded-lg text-sm font-medium text-gray-600 hover:border-nesr-green hover:text-nesr-green transition-all hover:bg-nesr-green/5 hover:shadow-md"
                   >
                     {suggestion}
                   </button>
