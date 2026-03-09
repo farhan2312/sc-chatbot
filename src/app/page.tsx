@@ -389,13 +389,13 @@ export default function Home() {
             </div>
           ) : (
             /* Message List */
-            <div className="max-w-3xl mx-auto flex flex-col gap-6 pt-8">
+            <div className="max-w-3xl lg:max-w-5xl mx-auto flex flex-col gap-6 pt-8">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="flex flex-col gap-1 max-w-[85%]">
+                  <div className="flex flex-col gap-1 max-w-[85%] lg:max-w-[90%]">
                     {/* Name label for clarity */}
                     <span className={`text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-1 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                       {msg.role === 'user' ? text.youLabel : activeAgentName}
@@ -429,9 +429,11 @@ export default function Home() {
                               <p className="mb-2 last:mb-0 whitespace-pre-wrap">{children}</p>
                             ),
                             table: ({ children }) => (
-                              <table className="w-full text-sm text-left border-collapse my-4 block overflow-x-auto border border-slate-300 rounded-lg">
-                                {children}
-                              </table>
+                              <div className="w-full overflow-x-auto my-4">
+                                <table className="w-full text-sm text-left border-collapse border border-slate-300 rounded-lg">
+                                  {children}
+                                </table>
+                              </div>
                             ),
                             thead: ({ children }) => (
                               <thead className="text-xs uppercase text-slate-500 bg-slate-100">
@@ -500,7 +502,7 @@ export default function Home() {
 
         {/* Input Area */}
         <div className="absolute bottom-0 left-0 right-0 p-6 pt-0 pointer-events-none bg-gradient-to-t from-white via-white/80 to-transparent z-20">
-          <div className="max-w-[700px] mx-auto pointer-events-auto mt-4">
+          <div className="max-w-[700px] lg:max-w-5xl mx-auto pointer-events-auto mt-4">
             <div className="relative shadow-[0_8px_40px_rgb(0,0,0,0.08)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.12)] transition-shadow duration-300 rounded-2xl bg-white/90 backdrop-blur-xl ring-1 ring-gray-200 group focus-within:ring-2 focus-within:ring-nesr-green/20">
 
 
