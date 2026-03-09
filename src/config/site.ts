@@ -97,8 +97,8 @@ export const siteConfig = {
             'Provide a logistics summary for: ',
         ],
         sourceguide: [
-            'Which Supplier to use for Laptops in KSA?',
-            'Who supplies Hardware in HQ Dubai?',
+            'Which Supplier to use for Laptops in HQ Dubai?',
+            'Who supplies Medical Insurance in Egypt?',
             'Check vendor details for Barite in UAE',
         ],
     },
